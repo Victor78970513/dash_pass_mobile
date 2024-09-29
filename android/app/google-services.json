@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "912405318840",
+    "project_id": "dash-pass-f5146",
+    "storage_bucket": "dash-pass-f5146.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:912405318840:android:058f3550e69678775f784d",
+        "android_client_info": {
+          "package_name": "com.example.das_pass"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgrXcxpkIHchvhrH5EATk0-Yq28sb6JNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
