@@ -25,6 +25,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final formKey = GlobalKey<FormState>();
   String? _emailErrorText;
   String? _passwordErrorText;
+  bool isChecked = false;
 
   @override
   void initState() {
@@ -94,72 +95,99 @@ class _SignUpPageState extends State<SignUpPage> {
               }
             },
             builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      SvgPicture.asset(
-                        "assets/logos/dash_pass.svg",
-                        height: size.height * 0.2,
-                        width: size.width * 0.7,
-                      ),
-                      SizedBox(height: size.height * 0.04),
-                      Text(
-                        "Inicia Sesion para empezar a usar Dash Pass",
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        SvgPicture.asset(
+                          "assets/logos/dash_pass.svg",
+                          height: size.height * 0.2,
+                          width: size.width * 0.7,
                         ),
-                      ),
-                      SizedBox(height: size.height * 0.04),
-                      InputFieldWidget(
-                        title: "Email",
-                        hintText: "Ingresa tu correo electronico",
-                        controller: emailCtrl,
-                        validator: (value) => _emailErrorText,
-                        onChange: validateEmail,
-                      ),
-                      SizedBox(height: size.height * 0.03),
-                      InputFieldWidget(
-                        title: "Password",
-                        hintText: "Ingresa tu contraseña",
-                        controller: passCtrl,
-                        validator: (value) => _passwordErrorText,
-                        onChange: validatePassword,
-                        obscureText: true,
-                      ),
-                      SizedBox(height: size.height * 0.04),
-                      LoginButton(
-                        onTap: () {
-                          validateEmail(emailCtrl.text);
-                          validatePassword(passCtrl.text);
-                          if (formKey.currentState!.validate()) {
-                            context.read<AuthBloc>().add(AuthSignUpEvent(
-                                  email: emailCtrl.text.trim(),
-                                  password: passCtrl.text.trim(),
-                                ));
-                          }
-                        },
-                        child: state is AuthLoading
-                            ? LoadingAnimationWidget.inkDrop(
-                                color: Colors.white,
-                                size: 35,
-                              )
-                            : const Text(
-                                "Crear Cuenta",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold),
+                        SizedBox(height: size.height * 0.04),
+                        Text(
+                          "Inicia Sesion para empezar a usar Dash Pass",
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: size.height * 0.04),
+                        InputFieldWidget(
+                          title: "Email",
+                          hintText: "Ingresa tu correo electronico",
+                          controller: emailCtrl,
+                          validator: (value) => _emailErrorText,
+                          onChange: validateEmail,
+                        ),
+                        SizedBox(height: size.height * 0.03),
+                        InputFieldWidget(
+                          title: "Password",
+                          hintText: "Ingresa tu contraseña",
+                          controller: passCtrl,
+                          validator: (value) => _passwordErrorText,
+                          onChange: validatePassword,
+                          obscureText: true,
+                        ),
+                        SizedBox(height: size.height * 0.02),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: Row(
+                            children: [
+                              Checkbox(
+                                value: isChecked,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    isChecked = value ?? false;
+                                  });
+                                },
                               ),
-                      ),
-                      const Spacer(),
-                      const SignUpRIchText(),
-                      SizedBox(height: size.height * 0.05)
-                    ],
+                              Text(
+                                "No soy un robot",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: size.height * 0.02),
+                        LoginButton(
+                          onTap: () {
+                            validateEmail(emailCtrl.text);
+                            validatePassword(passCtrl.text);
+                            if (formKey.currentState!.validate()) {
+                              context.read<AuthBloc>().add(AuthSignUpEvent(
+                                    email: emailCtrl.text.trim(),
+                                    password: passCtrl.text.trim(),
+                                  ));
+                            }
+                          },
+                          child: state is AuthLoading
+                              ? LoadingAnimationWidget.inkDrop(
+                                  color: Colors.white,
+                                  size: 35,
+                                )
+                              : const Text(
+                                  "Crear Cuenta",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                        ),
+                        // const Spacer(),
+                        SizedBox(height: size.height * 0.1),
+                        const SignUpRIchText(),
+                        SizedBox(height: size.height * 0.05)
+                      ],
+                    ),
                   ),
                 ),
               );

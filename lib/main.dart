@@ -1,4 +1,5 @@
 import 'package:dash_pass/features/auth/presentation/pages/login_page.dart';
+// import 'package:dash_pass/features/home/presentation/pages/home_page.dart';
 import 'package:dash_pass/service_locator.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       title: 'Material App',
       home: LoginPage(),
+      // home: HomePage(),
     );
   }
 }
