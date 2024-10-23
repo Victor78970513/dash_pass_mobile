@@ -1,12 +1,30 @@
+import 'package:dash_pass/core/shared_preferences/preferences.dart';
+import 'package:dash_pass/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dash_pass/features/auth/presentation/pages/login_page.dart';
-// import 'package:dash_pass/features/home/presentation/pages/home_page.dart';
+import 'package:dash_pass/features/home/presentation/pages/home_page.dart';
+import 'package:dash_pass/features/profile/bloc/profile_bloc.dart';
 import 'package:dash_pass/service_locator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = Preferences();
+  await prefs.init();
   await initDependecies();
-  runApp(const MyApp());
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => serviceLocator<AuthBloc>(),
+        ),
+        BlocProvider(
+          create: (context) => serviceLocator<ProfileBloc>(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,8 +34,40 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Material App',
-      home: LoginPage(),
-      // home: HomePage(),
+      home: ANIAPAGE(),
+    );
+  }
+}
+
+class ANIAPAGE extends StatefulWidget {
+  const ANIAPAGE({super.key});
+
+  @override
+  State<ANIAPAGE> createState() => _ANIAPAGEState();
+}
+
+class _ANIAPAGEState extends State<ANIAPAGE> {
+  @override
+  void initState() {
+    context.read<AuthBloc>().add(IsUserLoggedIn());
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          switch (state) {
+            case AuthSuccess():
+              return const HomePage();
+            case AuthFailure():
+              return const LoginPage();
+            default:
+              return const LoginPage();
+          }
+        },
+      ),
     );
   }
 }

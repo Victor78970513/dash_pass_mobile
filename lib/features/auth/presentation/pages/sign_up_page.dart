@@ -166,6 +166,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               context.read<AuthBloc>().add(AuthSignUpEvent(
                                     email: emailCtrl.text.trim(),
                                     password: passCtrl.text.trim(),
+                                    username: 'wiscocho',
                                   ));
                             }
                           },
