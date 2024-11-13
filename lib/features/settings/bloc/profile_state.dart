@@ -10,7 +10,7 @@ final class ProfileLoadingState extends ProfileState {}
 final class ProfileSuccessState extends ProfileState {
   final UserModel user;
 
-  ProfileSuccessState(this.user);
+  ProfileSuccessState({required this.user});
 }
 
 final class ProfileErrorState extends ProfileState {}

@@ -1,8 +1,10 @@
 import 'package:dash_pass/core/shared_preferences/preferences.dart';
 import 'package:dash_pass/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dash_pass/features/auth/presentation/pages/login_page.dart';
+import 'package:dash_pass/features/home/cubit/navigation_cubit.dart';
+import 'package:dash_pass/features/home/cubit/scaffold_color_cubit.dart';
 import 'package:dash_pass/features/home/presentation/pages/home_page.dart';
-import 'package:dash_pass/features/profile/bloc/profile_bloc.dart';
+import 'package:dash_pass/features/settings/bloc/profile_bloc.dart';
 import 'package:dash_pass/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +17,12 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (context) => serviceLocator<ScaffoldColorCubit>(),
+        ),
+        BlocProvider(
+          create: (context) => NavigationCubit(),
+        ),
         BlocProvider(
           create: (context) => serviceLocator<AuthBloc>(),
         ),
@@ -33,6 +41,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Material App',
       home: ANIAPAGE(),
     );

@@ -31,7 +31,7 @@ class UserModel {
       createdAt: (map["createdAt"] as Timestamp).toDate(),
       updatedAt: (map["updatedAt"] as Timestamp).toDate(),
       tarjetaId: map["tarjeta_id"],
-      saldo: map["saldo"],
+      saldo: (map["saldo"] as int).toDouble(),
       vehiculoId: map["vehiculo_id"],
       profilePictureUrl: map["profile_picture_url"],
     );

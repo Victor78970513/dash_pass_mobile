@@ -1,7 +1,14 @@
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:dash_pass/core/shared_preferences/preferences.dart';
 import 'package:dash_pass/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:dash_pass/features/home/cubit/navigation_cubit.dart';
+import 'package:dash_pass/features/home/presentation/pages/home_view.dart';
+import 'package:dash_pass/features/home/presentation/widgets/navigator_item.dart';
 import 'package:dash_pass/features/my_vehicles/pages/my_vehicles_page.dart';
-import 'package:dash_pass/features/profile/bloc/profile_bloc.dart';
+import 'package:dash_pass/features/pases/presentation/pages/pases_page.dart';
+import 'package:dash_pass/features/reloads/presentation/pages/reloads_page.dart';
+import 'package:dash_pass/features/settings/bloc/profile_bloc.dart';
+import 'package:dash_pass/features/settings/presentation/pages/settings_page.dart';
 import 'package:dash_pass/main.dart';
 import 'package:dash_pass/service_locator.dart';
 import 'package:flutter/material.dart';
@@ -16,16 +23,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late PageController _pageController;
   @override
   void initState() {
+    context.read<NavigationCubit>().changeIndexValue(2);
+    _pageController =
+        PageController(initialPage: context.read<NavigationCubit>().state);
     final uid = Preferences().userUUID;
     context.read<ProfileBloc>().add(OnGetProfileEvent(uid));
-
     super.initState();
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final navigationIndex = context.watch<NavigationCubit>().state;
     final size = MediaQuery.of(context).size;
     return BlocProvider(
       create: (context) => serviceLocator<AuthBloc>(),
@@ -39,9 +56,10 @@ class _HomePageState extends State<HomePage> {
         child: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
             switch (state) {
+              case ProfileInitial():
               case ProfileLoadingState():
                 return Scaffold(
-                    backgroundColor: const Color(0xff0B6D6D),
+                    backgroundColor: Colors.white,
                     body: Align(
                       alignment: Alignment.bottomCenter,
                       child: SizedBox(
@@ -53,122 +71,46 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ));
-              case ProfileSuccessState():
-                final user = state.user;
+              case ProfileSuccessState(user: final user):
                 return Scaffold(
-                  backgroundColor: const Color(0xff0B6D6D),
+                  // backgroundColor: const Color(0xFFE0E0E0),
+                  backgroundColor: const Color(0xffF4F4F4),
                   body: SafeArea(
-                    child: Column(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const CircleAvatar(
-                                    // backgroundImage:
-                                    //     AssetImage('assets/profile_image.png'),
-                                    radius: 25,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Hola, ${user.name} 👋',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const Text(
-                                        'Bienvenido!',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    color: Colors.white,
-                                  ),
-                                  Text(
-                                    'La Paz-Bolivia',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  SizedBox(width: 10),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(30),
-                                topRight: Radius.circular(30),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 20),
-                                Expanded(
-                                  child: GridView.count(
-                                    crossAxisCount: 2,
-                                    childAspectRatio: 1.3,
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
-                                    children: [
-                                      _buildServiceItem(Icons.credit_card,
-                                          'Mis tarjetas', () {}),
-                                      _buildServiceItem(
-                                          Icons.location_on, 'Peajes', () {}),
-                                      _buildServiceItem(
-                                          Icons.directions_car, 'Mis Vehiculos',
-                                          () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    MyVehiclesPage()));
-                                      }),
-                                      // _buildServiceItem(Icons.security, 'Car Insurance'),
-                                      // _buildServiceItem(Icons.build, 'Road Assistance'),
-                                      _buildServiceItem(
-                                          Icons.history, 'Mis recargas', () {}),
-                                      _buildServiceItem(Icons.history_edu,
-                                          'Historial de pases', () {}),
-                                      _buildServiceItem(
-                                          Icons.account_balance_wallet,
-                                          'Mi Billetera',
-                                          () {}),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        const ReloadsPage(),
+                        MyVehiclesPage(),
+                        HomeView(user: user),
+                        const PasesPage(),
+                        SettingsPage(user: user),
                       ],
                     ),
+                  ),
+                  bottomNavigationBar: CurvedNavigationBar(
+                    index: navigationIndex,
+                    backgroundColor: const Color(0xffF4F4F4),
+                    // backgroundColor: const Color(0xFFE0E0E0),
+                    buttonBackgroundColor: const Color(0xff1C3C63),
+                    color: const Color(0xff1C3C63),
+                    animationDuration: const Duration(milliseconds: 250),
+                    onTap: (value) {
+                      context.read<NavigationCubit>().changeIndexValue(value);
+                      _pageController.animateToPage(
+                        value,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                    items: const [
+                      NavigatorItem(
+                          icon: Icons.account_balance_wallet, index: 0),
+                      NavigatorItem(icon: Icons.directions_car, index: 1),
+                      NavigatorItem(icon: Icons.home_filled, index: 2),
+                      NavigatorItem(icon: Icons.receipt, index: 3),
+                      NavigatorItem(icon: Icons.person_outline, index: 4),
+                    ],
                   ),
                 );
               case ProfileErrorState():
@@ -179,37 +121,10 @@ class _HomePageState extends State<HomePage> {
                               context.read<AuthBloc>().add(AuthLogOut());
                             },
                             child: const Text("SALIR"))));
-
-              default:
-                return const Scaffold(
-                  body: Center(
-                    child: Text("POR DEFAULT"),
-                  ),
-                );
             }
           },
         ),
       ),
     );
   }
-}
-
-Widget _buildServiceItem(IconData icon, String label, VoidCallback onTap) {
-  return GestureDetector(
-    onTap: () {
-      onTap();
-    },
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 70, color: const Color(0xff62B6B7)),
-        const SizedBox(height: 10),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
-      ],
-    ),
-  );
 }

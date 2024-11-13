@@ -27,7 +27,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final user = await _userRepository.getUserData(event.userID);
     if (user != null) {
       userModel = user;
-      emit(ProfileSuccessState(user));
+      emit(ProfileSuccessState(user: user));
     } else {
       emit(ProfileErrorState());
     }
