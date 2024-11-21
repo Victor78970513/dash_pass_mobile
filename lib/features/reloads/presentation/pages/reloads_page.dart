@@ -62,7 +62,7 @@ class ReloadsPage extends StatelessWidget {
                       StreamBuilder(
                           stream: FirebaseFirestore.instance
                               .collection("usuarios")
-                              .where('uid', isEqualTo: userId)
+                              .where('id_usuario', isEqualTo: userId)
                               .snapshots(),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
@@ -142,9 +142,7 @@ class ReloadsPage extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => GetPremiumPage(
-                                onPressed: () {},
-                              ),
+                              builder: (context) => const GetPremiumPage(),
                             ),
                           );
                         },
@@ -219,7 +217,7 @@ class ReloadsPage extends StatelessWidget {
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );

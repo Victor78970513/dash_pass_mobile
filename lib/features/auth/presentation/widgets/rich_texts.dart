@@ -21,7 +21,7 @@ class SignInRIchText extends StatelessWidget {
           TextSpan(
             text: "Crear cuenta",
             style: GoogleFonts.poppins(
-              color: const Color(0xff439A97),
+              color: const Color(0xff4A90E2),
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -56,7 +56,7 @@ class SignUpRIchText extends StatelessWidget {
           TextSpan(
             text: "Iniciar Sesion",
             style: GoogleFonts.poppins(
-              color: const Color(0xff439A97),
+              color: const Color(0xff4A90E2),
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),

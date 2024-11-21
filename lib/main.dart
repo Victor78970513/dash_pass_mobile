@@ -8,9 +8,14 @@ import 'package:dash_pass/features/settings/bloc/profile_bloc.dart';
 import 'package:dash_pass/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+// victor@gmail.com
+
+// wisco1@gmail.com
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Permission.camera.request();
   final prefs = Preferences();
   await prefs.init();
   await initDependecies();

@@ -21,7 +21,7 @@ class RecargasModel {
       idUsuario: map["id_usuario"],
       monto: map["monto"],
       tipoPago: map["tipo_pago"],
-      createdAt: (map["created_at"] as Timestamp).toDate(),
+      createdAt: (map["fecha_creacion"] as Timestamp).toDate(),
     );
   }
 }

@@ -5,23 +5,24 @@ class VehiculoModel {
   final String idVehiculo;
   final String marca;
   final String modelo;
-  final String numeroRegisgtro;
+  final int numeroRegisgtro;
   final String placa;
   final String tipoVehiculo;
   final String userId;
+  final String image;
 
-  VehiculoModel({
-    required this.rfid,
-    required this.chasis,
-    required this.estado,
-    required this.idVehiculo,
-    required this.marca,
-    required this.modelo,
-    required this.numeroRegisgtro,
-    required this.placa,
-    required this.tipoVehiculo,
-    required this.userId,
-  });
+  VehiculoModel(
+      {required this.rfid,
+      required this.chasis,
+      required this.estado,
+      required this.idVehiculo,
+      required this.marca,
+      required this.modelo,
+      required this.numeroRegisgtro,
+      required this.placa,
+      required this.tipoVehiculo,
+      required this.userId,
+      required this.image});
 
   factory VehiculoModel.fromJson(Map<String, dynamic> json) {
     return VehiculoModel(
@@ -31,10 +32,11 @@ class VehiculoModel {
       idVehiculo: json["id_vehiculo"],
       marca: json["marca"],
       modelo: json["modelo"],
-      numeroRegisgtro: json["numeroRegistro"],
+      numeroRegisgtro: json["numero_registro"],
       placa: json["placa"],
-      tipoVehiculo: json["tipoVehiculo"],
-      userId: json["user_id"],
+      tipoVehiculo: json["tipo_vehiculo"],
+      userId: json["id_usuario"],
+      image: json['imagen'],
     );
   }
 }

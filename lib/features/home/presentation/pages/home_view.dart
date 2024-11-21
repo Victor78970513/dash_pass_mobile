@@ -1,3 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dash_pass/core/shared_preferences/preferences.dart';
+import 'package:dash_pass/models/pase_model.dart';
+import 'package:dash_pass/models/toll_model.dart';
 import 'package:dash_pass/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,83 +12,156 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final uid = Preferences().userUUID;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 30,
-                ),
-                const SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hola, ${user.name} 👋',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      'Bienvenido!',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Saldo Disponible',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "Bs. ${user.saldo}",
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection("usuarios")
+                    .where("id_usuario", isEqualTo: uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final usuario =
+                        UserModel.fromMap(snapshot.data!.docs.first.data());
+                    return Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 30,
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Hola, ${usuario.name} 👋',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              'Bienvenido!',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Saldo Disponible',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "Bs. ${usuario.saldo}",
+                              style: GoogleFonts.poppins(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                }),
             const SizedBox(height: 16),
 
             // Último Pase Realizado
-            Card(
-              color: const Color(0xff4A90E2),
-              child: ListTile(
-                leading: const Icon(Icons.directions_car, color: Colors.white),
-                title: Text(
-                  'Último Pase Realizado',
-                  style: GoogleFonts.poppins(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Peaje: Autopista 1',
-                        style: GoogleFonts.poppins(color: Colors.white70)),
-                    Text('Fecha: 01/11/2024 10:30 am',
-                        style: GoogleFonts.poppins(color: Colors.white70)),
-                    Text('Monto: \$3.00',
-                        style: GoogleFonts.poppins(color: Colors.white70)),
-                  ],
-                ),
+            Text(
+              'Ultima Actividad',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 8),
+            StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection("pases")
+                    .orderBy("fecha_creacion", descending: true)
+                    .where("id_usuario", isEqualTo: uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(child: Text("Error al cargar datos"));
+                  }
+                  if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                    final pase =
+                        PasesModel.fromJson(snapshot.data!.docs.first.data());
+                    return FutureBuilder(
+                        future: FirebaseFirestore.instance
+                            .collection('peajes')
+                            .doc(pase.idPeaje)
+                            .get(),
+                        builder: (context, peajeSnapshot) {
+                          if (peajeSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+
+                          if (peajeSnapshot.hasError) {
+                            return const Center(
+                                child: Text("Error al cargar el peaje"));
+                          }
+                          if (peajeSnapshot.hasData &&
+                              peajeSnapshot.data!.exists) {
+                            final peaje =
+                                TollModel.fromMap(peajeSnapshot.data!.data()!);
+                            return Card(
+                              color: const Color(0xff4A90E2),
+                              child: ListTile(
+                                leading: const Icon(Icons.directions_car,
+                                    color: Colors.white),
+                                title: Text(
+                                  'Último Pase Realizado',
+                                  style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Peaje: ${peaje.name}',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white70)),
+                                    Text('Fecha: ${peaje.createdAt}',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white70)),
+                                    Text('Monto: Bs. ${pase.monto}',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white70)),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return const Center(
+                              child: Text("No se encontró el peaje"));
+                        });
+                  }
+                  return const Center(child: Text("No hay pases disponibles"));
+                }),
             const SizedBox(height: 16),
 
             // Mapa de Peajes Cercanos
