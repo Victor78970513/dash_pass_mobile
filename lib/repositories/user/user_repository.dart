@@ -10,6 +10,8 @@ abstract class UserRepository {
     required String username,
     required DateTime createdAt,
     required DateTime updatedAt,
+    required int carnet,
+    required int telefono,
   });
   Future<UserModel?> getUserData(String uid);
 

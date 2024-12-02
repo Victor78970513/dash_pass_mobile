@@ -28,6 +28,8 @@ class UserRepositoryImpl extends UserRepository {
     required String username,
     required DateTime createdAt,
     required DateTime updatedAt,
+    required int carnet,
+    required int telefono,
   }) async {
     CollectionReference users = usersDb.collection("usuarios");
     DocumentSnapshot userDoc = await users.doc(uid).get();
@@ -36,15 +38,18 @@ class UserRepositoryImpl extends UserRepository {
         return true;
       } else {
         await users.doc(uid).set({
-          "name": username,
-          "email": email,
-          "createdAt": createdAt,
-          "updatedAt": updatedAt,
-          "uid": uid,
-          "tarjeta_id": "",
+          "carnet_identidad": carnet,
+          "correo": email,
+          "estado_cuenta": true,
+          "nombre": username,
+          "fecha_actualizacion": updatedAt,
+          "fecha_creacion": createdAt,
+          "foto_perfil": "",
+          "id_rol": 2,
+          "id_usuario": uid,
+          "id_vehiculo": "",
           "saldo": 0.0,
-          "vehiculo_id": "",
-          "profile_picture_url": "",
+          "telefono": telefono,
         });
         return true;
       }

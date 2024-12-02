@@ -149,16 +149,6 @@ Si tiene preguntas o comentarios sobre estos Términos, puede ponerse en contact
                   },
                 ),
                 SettingsItem(
-                  icon: Icons.question_answer,
-                  itemName: "Preguntas frecuentes",
-                  onTap: () {},
-                ),
-                SettingsItem(
-                  icon: Icons.sync_problem,
-                  itemName: "Reportar Problema / Sugerencia",
-                  onTap: () {},
-                ),
-                SettingsItem(
                   icon: Icons.logout,
                   itemName: "Cerrar Sesión",
                   onTap: () {

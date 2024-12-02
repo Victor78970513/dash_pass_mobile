@@ -49,6 +49,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         username: event.username,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        carnet: event.carnet,
+        telefono: event.phone,
       );
       if (created) {
         Preferences().userUUID = response.user!.uid;

@@ -1,422 +1,307 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dash_pass/core/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_credit_card/flutter_credit_card.dart';
 
-class MyWalletPage extends StatefulWidget {
-  const MyWalletPage({super.key});
+class CreditCardPage extends StatefulWidget {
+  const CreditCardPage({super.key});
 
   @override
-  State<MyWalletPage> createState() => _MyWalletPageState();
+  _CreditCardPageState createState() => _CreditCardPageState();
 }
 
-class _MyWalletPageState extends State<MyWalletPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool isLoading = false;
+class _CreditCardPageState extends State<CreditCardPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _cardNumberController = TextEditingController();
+  final TextEditingController _expiryController = TextEditingController();
+  final TextEditingController _cvvController = TextEditingController();
+  final TextEditingController _montoController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
+  Future<void> actualizarSaldo(String userId, double nuevoSaldo) async {
+    try {
+      // Obtén la referencia al documento del usuario
+      final userRef =
+          FirebaseFirestore.instance.collection('usuarios').doc(userId);
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+      // Obtén el saldo actual del usuario
+      final userDoc = await userRef.get();
 
-  Future<void> loadCredit(String method) async {
-    setState(() {
-      isLoading = true;
-    });
+      if (userDoc.exists) {
+        // Si el documento existe, obtiene el saldo actual
+        double saldoActual = userDoc.data()?['saldo'] ?? 0.0;
 
-    // Simula un delay para cargar crédito
-    await Future.delayed(const Duration(seconds: 2));
+        // Calcula el nuevo saldo sumando el saldo actual con el nuevo saldo
+        double saldoFinal = saldoActual + nuevoSaldo;
 
-    setState(() {
-      isLoading = false;
-    });
+        // Actualiza el saldo en Firestore
+        await userRef.update({
+          'saldo': saldoFinal, // Suma el nuevo saldo al saldo actual
+        });
 
-    // Mostrar mensaje de éxito
-    showDialog(
-      // ignore: use_build_context_synchronously
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Carga Exitosa'),
-          content: Text('Se ha cargado crédito usando $method.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("Cargar Crédito"),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(
-              icon: Icon(
-                Icons.qr_code,
-                color: Color(0xff0B6D6D),
-              ),
-              text: "QR",
-            ),
-            Tab(
-                icon: Icon(
-                  Icons.credit_card,
-                  color: Color(0xff0B6D6D),
-                ),
-                text: "Tarjeta de Débito"),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Pantalla para cargar con QR
-          Column(
-            children: [
-              SizedBox(
-                height: MediaQuery.sizeOf(context).height * 0.5,
-                width: MediaQuery.sizeOf(context).width,
-                child: Image.asset(
-                  "assets/images/qr_image.png",
-                  fit: BoxFit.fill,
-                ),
-              ),
-              Center(
-                child: isLoading
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton.icon(
-                        icon: const Icon(Icons.qr_code),
-                        label: const Text("Verificar el pago por qr"),
-                        onPressed: () {
-                          loadCredit("QR");
-                        },
-                      ),
-              ),
-            ],
-          ),
-          // Pantalla para cargar con Tarjeta de Débito
-          GetPremiumPage(),
-        ],
-      ),
-    );
-  }
-}
-
-class GetPremiumPage extends StatefulWidget {
-  const GetPremiumPage({super.key});
-
-  @override
-  State<GetPremiumPage> createState() => _GetPremiumPageState();
-}
-
-class _GetPremiumPageState extends State<GetPremiumPage> {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final TextEditingController montoController = TextEditingController();
-  bool isLoading = false;
-
-  String cardNumber = '';
-  String expiryDate = '';
-  String cardHolderName = '';
-  String cvvCode = '';
-  String amount = ''; // Campo para el monto
-  bool isCvvFocused = false;
-
-  void onCreditCardModelChange(CreditCardModel creditCardModel) {
-    setState(() {
-      cardNumber = creditCardModel.cardNumber;
-      expiryDate = creditCardModel.expiryDate;
-      cardHolderName = creditCardModel.cardHolderName;
-      cvvCode = creditCardModel.cvvCode;
-      isCvvFocused = creditCardModel.isCvvFocused;
-    });
-  }
-
-  Future<void> loadCredit(String method) async {
-    if (!formKey.currentState!.validate()) return;
-
-    setState(() {
-      isLoading = true;
-    });
-
-    // Simula un delay para cargar crédito
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() {
-      isLoading = false;
-    });
-
-    // Mostrar mensaje de éxito
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Carga Exitosa'),
-            content: Text('Se ha cargado $amount usando $method.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+        print("Saldo actualizado con éxito. Nuevo saldo: $saldoFinal");
+      } else {
+        print("El documento del usuario no existe.");
+      }
+    } catch (e) {
+      print("Error al actualizar el saldo: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const underlineInputBorder =
-        UnderlineInputBorder(borderSide: BorderSide(color: Colors.black));
-    final uid = Preferences().userUUID;
-
     return Scaffold(
-      backgroundColor: const Color(0xffe7f4f8), // Azul pastel claro
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 16),
-                const Text(
-                  "Introduce los detalles de tu tarjeta para realizar la recarga correspondiente",
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Color(0xff4a90e2),
-                  ),
-                  textAlign: TextAlign.center,
+      appBar: AppBar(
+        title: const Text('Recargar Crédito'),
+        backgroundColor: Colors.blue,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Título
+            const Text(
+              "Detalles de la Tarjeta de Crédito",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Representación de la tarjeta de crédito
+            Center(
+              child: Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 32),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xffffffff),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 15,
-                        offset: const Offset(0, 10),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Logo del banco o texto
+                    const Text(
+                      "Tarjeta Credito/Debito",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      CreditCardWidget(
-                        cardNumber: cardNumber,
-                        expiryDate: expiryDate,
-                        cardHolderName: cardHolderName,
-                        cvvCode: cvvCode,
-                        showBackView: isCvvFocused,
-                        onCreditCardWidgetChange: (CreditCardBrand) {},
-                        cardBgColor: const Color(0xff4a90e2), // Azul pastel
-                        isHolderNameVisible: true,
+                    ),
+                    const Spacer(),
+                    // Número de tarjeta (dinámico)
+                    Text(
+                      _cardNumberController.text.isEmpty
+                          ? "1234 5678 9876 5432"
+                          : _cardNumberController.text,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      CreditCardForm(
-                        cardNumber: cardNumber,
-                        expiryDate: expiryDate,
-                        cardHolderName: cardHolderName,
-                        cvvCode: cvvCode,
-                        onCreditCardModelChange: onCreditCardModelChange,
-                        formKey: formKey,
-                        inputConfiguration: const InputConfiguration(
-                          cardHolderTextStyle: TextStyle(color: Colors.black),
-                          expiryDateTextStyle: TextStyle(color: Colors.black),
-                          cvvCodeTextStyle: TextStyle(color: Colors.black),
-                          cardNumberTextStyle: TextStyle(color: Colors.black),
-                          cardNumberDecoration: InputDecoration(
-                            enabledBorder: underlineInputBorder,
-                            focusedBorder: underlineInputBorder,
-                            labelText: 'Número de tarjeta',
-                            hintText: 'XXXX XXXX XXXX XXXX',
-                            hintStyle: TextStyle(color: Color(0xff4a90e2)),
-                            labelStyle: TextStyle(color: Color(0xff4a90e2)),
-                          ),
-                          expiryDateDecoration: InputDecoration(
-                            enabledBorder: underlineInputBorder,
-                            focusedBorder: underlineInputBorder,
-                            labelText: 'Fecha de expiración',
-                            hintText: 'MM/AA',
-                            hintStyle: TextStyle(color: Color(0xff4a90e2)),
-                            labelStyle: TextStyle(color: Color(0xff4a90e2)),
-                          ),
-                          cvvCodeDecoration: InputDecoration(
-                            enabledBorder: underlineInputBorder,
-                            focusedBorder: underlineInputBorder,
-                            labelText: 'CVV',
-                            hintText: 'XXX',
-                            hintStyle: TextStyle(color: Color(0xff4a90e2)),
-                            labelStyle: TextStyle(color: Color(0xff4a90e2)),
-                          ),
-                          cardHolderDecoration: InputDecoration(
-                            enabledBorder: underlineInputBorder,
-                            focusedBorder: underlineInputBorder,
-                            labelText: 'Nombre del propietario',
-                            hintStyle: TextStyle(color: Color(0xff4a90e2)),
-                            labelStyle: TextStyle(color: Color(0xff4a90e2)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: TextFormField(
-                          controller: montoController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Monto a cargar',
-                            labelStyle: TextStyle(color: Color(0xff4a90e2)),
-                            hintText: 'Ej. 100.00',
-                            enabledBorder: underlineInputBorder,
-                            focusedBorder: underlineInputBorder,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, introduce un monto';
-                            }
-                            if (double.tryParse(value) == null ||
-                                double.parse(value) <= 0) {
-                              return 'Introduce un monto válido';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              amount = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xff4a90e2),
-                          ),
-                        )
-                      : ElevatedButton.icon(
-                          onPressed: () async {
-                            try {
-                              FirebaseFirestore.instance
-                                  .runTransaction((transaction) async {
-                                DocumentReference userRef = FirebaseFirestore
-                                    .instance
-                                    .collection("usuarios")
-                                    .doc(uid);
-
-                                // Obtener el documento actual
-                                DocumentSnapshot snapshot =
-                                    await transaction.get(userRef);
-
-                                if (!snapshot.exists) {
-                                  throw Exception("El usuario no existe.");
-                                }
-
-                                // Leer el saldo actual
-                                int saldoActual = snapshot.get("saldo");
-
-                                // Actualizar el saldo
-                                int nuevoSaldo = saldoActual +
-                                    int.parse(montoController.text);
-
-                                // Actualizar el documento en la transacción
-                                transaction
-                                    .update(userRef, {"saldo": nuevoSaldo});
-                              });
-
-                              // Mostrar un mensaje de éxito
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('Carga Exitosa'),
-                                    content: Text(
-                                        'Se ha cargado ${montoController.text} al saldo.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            } catch (e) {
-                              // Manejar errores
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('Error'),
-                                    content: Text(
-                                        'No se pudo realizar la carga: $e'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            }
-                          },
-                          icon: const Icon(
-                            Icons.credit_card,
-                            size: 24,
+                    ),
+                    const Spacer(),
+                    // Fecha de expiración y nombre (dinámico)
+                    Row(
+                      children: [
+                        Text(
+                          _expiryController.text.isEmpty
+                              ? "Exp: 12/24"
+                              : "Exp: ${_expiryController.text}",
+                          style: const TextStyle(
+                            fontSize: 14,
                             color: Colors.white,
                           ),
-                          label: const Text(
-                            "Pagar con tarjeta",
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color(0xff4a90e2), // Azul pastel mediano
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12, horizontal: 20),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          _nameController.text.isEmpty
+                              ? "Juan Pérez"
+                              : _nameController.text,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
                           ),
                         ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            // Nombre del titular
+            const Text(
+              "Nombre del titular",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            TextField(
+              controller: _nameController,
+              onChanged: (value) {
+                setState(() {});
+              },
+              decoration: const InputDecoration(
+                hintText: "Ejemplo: Juan Pérez",
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10),
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            // Número de tarjeta
+            const Text(
+              "Número de tarjeta",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            TextField(
+              controller: _cardNumberController,
+              onChanged: (value) {
+                setState(() {});
+              },
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: "1234 5678 1234 5678",
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10),
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            // Fecha de expiración
+            Row(
+              children: [
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Fecha de expiración",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _expiryController,
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                    decoration: const InputDecoration(
+                      hintText: "MM/AA",
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                // CVV
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "CVV",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _cvvController,
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                    obscureText: true,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: "123",
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 30),
+            const Text(
+              "Monto a recargar",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _montoController,
+              onChanged: (value) {
+                setState(() {});
+              },
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: "Ingresa el monto",
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10),
+              ),
+            ),
+            // Botón para recargar crédito
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  final userId = Preferences().userUUID;
+                  await Future.delayed(const Duration(seconds: 2));
+                  await actualizarSaldo(
+                      userId, double.parse(_montoController.text));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: const Text(
+                  "Recargar Crédito",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

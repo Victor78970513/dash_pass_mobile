@@ -142,7 +142,7 @@ class ReloadsPage extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const GetPremiumPage(),
+                              builder: (context) => const CreditCardPage(),
                             ),
                           );
                         },
@@ -190,10 +190,34 @@ class ReloadsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AllReloads(),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  "Ver Todo",
+                  style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 15),
+                const Icon(Icons.arrow_right_alt_outlined),
+              ],
+            ),
+          ),
           Expanded(
             child: StreamBuilder(
-              stream:
-                  FirebaseFirestore.instance.collection("recargas").snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection("recargas")
+                  .where("id_usuario", isEqualTo: userId)
+                  .snapshots(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -202,23 +226,102 @@ class ReloadsPage extends StatelessWidget {
                   return const Center(
                       child: Text('No hay recargas disponibles'));
                 }
+
+                // Convertir los documentos en modelos de recarga
                 final recargas = snapshot.data!.docs.map((doc) {
                   return RecargasModel.fromJson(
                       doc.data() as Map<String, dynamic>);
                 }).toList();
+
+                // Limitar la cantidad de elementos a 3 como máximo
+                final maxRecargas = recargas.take(3).toList();
+
                 return ListView.builder(
-                  itemCount: recargas.length,
+                  itemCount: maxRecargas.length,
                   itemBuilder: (context, index) {
                     final color = Colors
                         .primaries[Random().nextInt(Colors.primaries.length)];
-                    final recarga = recargas[index];
+                    final recarga = maxRecargas[index];
                     return RecargaCardWidget(recarga: recarga, color: color);
                   },
                 );
               },
             ),
-          ),
+          )
         ],
+      ),
+    );
+  }
+}
+
+class AllReloads extends StatelessWidget {
+  const AllReloads({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = Preferences().userUUID;
+    return Scaffold(
+      backgroundColor: const Color(0xffF4F4F4),
+      appBar: AppBar(
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.black,
+            )),
+        title: Text(
+          "Todas tus Recargas",
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: Container(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection("recargas")
+                      .where("id_usuario", isEqualTo: userId)
+                      .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(
+                          child: Text('No hay recargas disponibles'));
+                    }
+
+                    // Convertir los documentos en modelos de recarga
+                    final recargas = snapshot.data!.docs.map((doc) {
+                      return RecargasModel.fromJson(
+                          doc.data() as Map<String, dynamic>);
+                    }).toList();
+
+                    // Limitar la cantidad de elementos a 3 como máximo
+
+                    return ListView.builder(
+                      itemCount: recargas.length,
+                      itemBuilder: (context, index) {
+                        final color = Colors.primaries[
+                            Random().nextInt(Colors.primaries.length)];
+                        final recarga = recargas[index];
+                        return RecargaCardWidget(
+                            recarga: recarga, color: color);
+                      },
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }

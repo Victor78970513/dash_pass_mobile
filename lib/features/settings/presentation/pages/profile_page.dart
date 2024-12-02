@@ -82,7 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       print("Error al actualizar usuario: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar los datos')),
+        const SnackBar(content: Text('Error al actualizar los datos')),
       );
     }
   }
@@ -96,16 +96,6 @@ class _ProfilePageState extends State<ProfilePage> {
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.logout_outlined,
-              color: Colors.white,
-              size: 40,
-            ),
-          )
-        ],
         title: Text(
           "Mi Perfil",
           style: GoogleFonts.poppins(
@@ -113,6 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         backgroundColor: const Color(0xff23395D),
         elevation: 4,
+        centerTitle: true,
       ),
       body: Column(
         children: [
